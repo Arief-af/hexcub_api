@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('instructor');
             $table->string('url');
+            $table->timestamps();
         });
     }
 
