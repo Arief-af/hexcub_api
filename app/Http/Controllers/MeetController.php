@@ -24,7 +24,7 @@ class MeetController extends Controller
             'date' => 'required|date',
             'title' => 'required|string|max:255',
             'instructor' => 'required|string|max:255',
-            'url' => 'required|url',
+            'url' => 'required|string|max:255',
         ]);
 
         try {
@@ -68,7 +68,7 @@ class MeetController extends Controller
             'date' => 'required|date',
             'title' => 'required|string|max:255',
             'instructor' => 'required|string|max:255',
-            'url' => 'required|url',
+            'url' => 'required|string|max:255',
         ]);
 
         $meet->update($validated);
