@@ -10,6 +10,7 @@ class ContactController extends Controller
 {
     public function index()
     {
+        // tes
         $contacts = Contact::latest()->paginate(10);
 
         return response()->json([
