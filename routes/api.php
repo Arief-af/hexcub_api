@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UserVideoController;
 use App\Http\Controllers\VideoCommentController;
 use App\Http\Controllers\VideoReviewController;
 use App\Http\Controllers\VideoDetailController;
@@ -62,3 +63,10 @@ Route::post('video-comments', [VideoCommentController::class, 'store']);
 Route::get('video-comments/{id}', [VideoCommentController::class, 'show']);
 Route::put('video-comments/{id}', [VideoCommentController::class, 'update']);
 Route::delete('video-comments/{id}', [VideoCommentController::class, 'destroy']);
+
+// UserVideo Routes
+Route::get('user-videos', [UserVideoController::class, 'index']);
+Route::post('user-videos', [UserVideoController::class, 'store']);
+Route::get('user-videos/{id}', [UserVideoController::class, 'show']);
+Route::put('user-videos/{id}', [UserVideoController::class, 'update']);
+Route::delete('user-videos/{id}', [UserVideoController::class, 'destroy']);
