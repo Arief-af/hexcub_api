@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\VideoDetailController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\ContactController;
@@ -38,3 +39,10 @@ Route::post('users', [UserController::class, 'store']);
 Route::get('users/{id}', [UserController::class, 'show']);
 Route::put('users/{id}', [UserController::class, 'update']);
 Route::delete('users/{id}', [UserController::class, 'destroy']);
+
+// VideoDetail Routes
+Route::get('video-details', [VideoDetailController::class, 'index']);
+Route::post('video-details', [VideoDetailController::class, 'store']);
+Route::get('video-details/{id}', [VideoDetailController::class, 'show']);
+Route::put('video-details/{id}', [VideoDetailController::class, 'update']);
+Route::delete('video-details/{id}', [VideoDetailController::class, 'destroy']);
