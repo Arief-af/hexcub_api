@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MeetController;
@@ -30,3 +31,10 @@ Route::post('videos', [VideoController::class, 'store']);
 Route::get('videos/{id}', [VideoController::class, 'show']);
 Route::put('videos/{id}', [VideoController::class, 'update']);
 Route::delete('videos/{id}', [VideoController::class, 'destroy']);
+
+// User CRUD Routes
+Route::get('users', [UserController::class, 'index']);
+Route::post('users', [UserController::class, 'store']);
+Route::get('users/{id}', [UserController::class, 'show']);
+Route::put('users/{id}', [UserController::class, 'update']);
+Route::delete('users/{id}', [UserController::class, 'destroy']);
