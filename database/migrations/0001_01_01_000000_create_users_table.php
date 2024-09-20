@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('phone_number');
             $table->string('image');
             $table->string('password');
-            $table->string('password_confirmation');
             $table->rememberToken();
             $table->timestamps();
         });
