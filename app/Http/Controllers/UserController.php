@@ -25,11 +25,17 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone_number' => 'required|string|max:15',
-            'image' => 'required|string',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
         try {
+            if ($request->hasFile('image')) {
+                $imageName = time().'.'.$request->image->extension();  
+                $request->image->move(public_path('images'), $imageName);
+                $validated['image'] = 'images/'.$imageName;
+            }
+
             $validated['password'] = Hash::make($validated['password']);
             $user = User::create($validated);
             return response()->json([
@@ -71,7 +77,7 @@ class UserController extends Controller
             'name' => 'string|max:255',
             'email' => 'string|email|max:255|unique:users,email,' . $id,
             'phone_number' => 'string|max:15',
-            'image' => 'string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
@@ -79,12 +85,25 @@ class UserController extends Controller
             $validated['password'] = Hash::make($validated['password']);
         }
 
+        if ($request->hasFile('image')) {
+            if ($user->image && file_exists(public_path($user->image))) {
+                unlink(public_path($user->image));
+            }
+
+            $imageName = time().'.'.$request->image->extension();
+            $request->image->move(public_path('images'), $imageName);
+
+            $validated['image'] = 'images/'.$imageName;
+        }
+
         $user->update($validated);
+
         return response()->json([
             'message' => 'User Updated Successfully',
             'data' => $user
         ], Response::HTTP_OK);
     }
+
 
     public function destroy(int $id)
     {
