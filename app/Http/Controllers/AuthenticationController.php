@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class AuthenticationController extends Controller
+class AuthenticationController extends BaseController
 {
     /**
      * Register API
@@ -23,13 +23,13 @@ class AuthenticationController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone_number' => 'required|string|max:15',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors(), 422);
-        }
+            return $this->sendError('Validation Error.', $validator->errors()->toArray(), 422);
+        }        
 
         $input = $request->all();
         $input['password'] = Hash::make($input['password']);
