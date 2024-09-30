@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\UserVideoController;
 use App\Http\Controllers\VideoCommentController;
 use App\Http\Controllers\VideoReviewController;
@@ -70,3 +71,9 @@ Route::post('user-videos', [UserVideoController::class, 'store']);
 Route::get('user-videos/{id}', [UserVideoController::class, 'show']);
 Route::put('user-videos/{id}', [UserVideoController::class, 'update']);
 Route::delete('user-videos/{id}', [UserVideoController::class, 'destroy']);
+
+// Authetication Routes
+Route::controller(AuthenticationController::class)->group(function(){
+    Route::post('register', 'register');
+    Route::post('login', 'login');
+});
