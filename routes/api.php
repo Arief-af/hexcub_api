@@ -11,6 +11,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MeetController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\AdminMiddleware;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -20,22 +21,28 @@ Route::get('/user', function (Request $request) {
 Route::get('/contacts', [ContactController::class, 'index']);
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::get('/contacts/{id}', [ContactController::class, 'show']);
-Route::put('/contacts/{id}', [ContactController::class, 'update']);
-Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
+Route::middleware([AdminMiddleware::class])->group(function () {
+    Route::put('/contacts/{id}', [ContactController::class, 'update']);
+    Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
+});
 
 // Meet CRUD Routes
 Route::get('/meets', [MeetController::class, 'index']);
-Route::post('/meets', [MeetController::class, 'store']);
 Route::get('/meets/{id}', [MeetController::class, 'show']);
-Route::put('/meets/{id}', [MeetController::class, 'update']);
-Route::delete('/meets/{id}', [MeetController::class, 'destroy']);
+Route::middleware([AdminMiddleware::class])->group(function () {
+    Route::post('/meets', [MeetController::class, 'store']);
+    Route::put('/meets/{id}', [MeetController::class, 'update']);
+    Route::delete('/meets/{id}', [MeetController::class, 'destroy']);
+});
 
 // Video CRUD Routes
 Route::get('videos', [VideoController::class, 'index']);
-Route::post('videos', [VideoController::class, 'store']);
 Route::get('videos/{id}', [VideoController::class, 'show']);
-Route::put('videos/{id}', [VideoController::class, 'update']);
-Route::delete('videos/{id}', [VideoController::class, 'destroy']);
+Route::middleware([AdminMiddleware::class])->group(function () {
+    Route::post('videos', [VideoController::class, 'store']);
+    Route::put('videos/{id}', [VideoController::class, 'update']);
+    Route::delete('videos/{id}', [VideoController::class, 'destroy']);
+});
 
 // User CRUD Routes
 Route::get('users', [UserController::class, 'index']);
@@ -46,10 +53,12 @@ Route::delete('users/{id}', [UserController::class, 'destroy']);
 
 // VideoDetail Routes
 Route::get('video-details', [VideoDetailController::class, 'index']);
-Route::post('video-details', [VideoDetailController::class, 'store']);
 Route::get('video-details/{id}', [VideoDetailController::class, 'show']);
-Route::put('video-details/{id}', [VideoDetailController::class, 'update']);
-Route::delete('video-details/{id}', [VideoDetailController::class, 'destroy']);
+Route::middleware([AdminMiddleware::class])->group(function () {
+    Route::post('video-details', [VideoDetailController::class, 'store']);
+    Route::put('video-details/{id}', [VideoDetailController::class, 'update']);
+    Route::delete('video-details/{id}', [VideoDetailController::class, 'destroy']);
+});
 
 // VideoReview Routes
 Route::get('video-reviews', [VideoReviewController::class, 'index']);
