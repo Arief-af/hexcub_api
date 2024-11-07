@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Video;
+use App\Models\VideoDetail;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -42,6 +43,13 @@ class VideoController extends Controller
                 $validated['file'] = 'files/' . $fileName;
             }
             $video = Video::create($validated);
+            foreach ($request->timeStamps as $time) {
+                VideoDetail::create([
+                    'video_id' => $video->id,
+                    'time' => $time->time,
+                    'title' => $time->title
+                ]);
+            }
             return response()->json([
                 'message' => 'Video Created Successfully',
                 'data' => $video

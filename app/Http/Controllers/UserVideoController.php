@@ -41,7 +41,7 @@ class UserVideoController extends Controller
         }
 
         $validated['user_id'] = Auth::id();
-        $validated['status'] = 0;
+        $validated['status'] = $request->status ?? 0;
         try {
             $userVideo = UserVideo::create($validated);
             return response()->json([
