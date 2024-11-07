@@ -38,7 +38,7 @@ Route::middleware([AdminMiddleware::class])->group(function () {
 // Video CRUD Routes
 Route::get('videos', [VideoController::class, 'index']);
 Route::get('videos/{id}', [VideoController::class, 'show']);
-Route::middleware([AdminMiddleware::class])->group(function () {
+Route::middleware([AdminMiddleware::class, 'auth:sanctum'])->group(function () {
     Route::post('videos', [VideoController::class, 'store']);
     Route::put('videos/{id}', [VideoController::class, 'update']);
     Route::delete('videos/{id}', [VideoController::class, 'destroy']);
@@ -52,9 +52,9 @@ Route::put('users/{id}', [UserController::class, 'update']);
 Route::delete('users/{id}', [UserController::class, 'destroy']);
 
 // VideoDetail Routes
-Route::get('video-details', [VideoDetailController::class, 'index']);
+Route::get('video-details', [VideoDetailController::class, 'index'])->middleware('auth:sanctum');
 Route::get('video-details/{id}', [VideoDetailController::class, 'show']);
-Route::middleware([AdminMiddleware::class])->group(function () {
+Route::middleware([AdminMiddleware::class, 'auth:sanctum'])->group(function () {
     Route::post('video-details', [VideoDetailController::class, 'store']);
     Route::put('video-details/{id}', [VideoDetailController::class, 'update']);
     Route::delete('video-details/{id}', [VideoDetailController::class, 'destroy']);
@@ -75,8 +75,8 @@ Route::put('video-comments/{id}', [VideoCommentController::class, 'update']);
 Route::delete('video-comments/{id}', [VideoCommentController::class, 'destroy']);
 
 // UserVideo Routes
-Route::get('user-videos', [UserVideoController::class, 'index']);
-Route::post('user-videos', [UserVideoController::class, 'store']);
+Route::get('user-videos', [UserVideoController::class, 'index'])->middleware('auth:sanctum');
+Route::post('user-videos', [UserVideoController::class, 'store'])->middleware('auth:sanctum');
 Route::get('user-videos/{id}', [UserVideoController::class, 'show']);
 Route::put('user-videos/{id}', [UserVideoController::class, 'update']);
 Route::delete('user-videos/{id}', [UserVideoController::class, 'destroy']);
@@ -85,4 +85,7 @@ Route::delete('user-videos/{id}', [UserVideoController::class, 'destroy']);
 Route::controller(AuthenticationController::class)->group(function(){
     Route::post('register', 'register');
     Route::post('login', 'login');
+    Route::post('verify-email', 'verifyEmail')->name('verification.verify');
+    Route::post('forgot-password', 'forgotPassword');
+    Route::post('reset-password', 'resetPassword');
 });

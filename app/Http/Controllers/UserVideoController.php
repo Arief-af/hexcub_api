@@ -5,12 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\UserVideo;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class UserVideoController extends Controller
 {
     public function index()
     {
-        $userVideos = UserVideo::with(['user', 'video'])->latest()->paginate(10);
+        $userVideos = UserVideo::with(['user', 'video'])
+            ->where('user_id', Auth::id()) // Filter by authenticated user
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'message' => 'User Videos Retrieved Successfully',
@@ -22,10 +26,22 @@ class UserVideoController extends Controller
     {
         $validated = $request->validate([
             'video_id' => 'required|exists:videos,id',
-            'user_id' => 'required|exists:users,id',
-            'status' => 'required|string',
         ]);
 
+        if (UserVideo::where('video_id', $validated['video_id'])->where('user_id', Auth::id())->exists()) {
+            $data = UserVideo::where('video_id', $validated['video_id'])->where('user_id', Auth::id())->first();
+            if ($request->status > $data->status) {
+                $data->status = $request->status;
+            } 
+            $data->save();
+            return response()->json([
+                'message' => 'Progress telah diperbarui',
+                'data' => $data
+            ], Response::HTTP_OK);
+        }
+
+        $validated['user_id'] = Auth::id();
+        $validated['status'] = 0;
         try {
             $userVideo = UserVideo::create($validated);
             return response()->json([
