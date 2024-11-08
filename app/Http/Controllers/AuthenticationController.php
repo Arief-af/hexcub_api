@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Notifications\VerifyEmail;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 class AuthenticationController extends BaseController
 {
@@ -146,5 +147,40 @@ class AuthenticationController extends BaseController
         $user->save();
     
         return response()->json(['message' => 'Password has been reset successfully.']);
+    }
+    public function updateProfile (Request $request) {
+        $user = User::find(Auth::id());
+        dd($user);
+        // delete current image from storage
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:255',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5048',
+        ]);
+
+        try {
+            if ($request->hasFile('image')) {
+                $fileName = time() . '.' . $request->file->extension();
+                $request->file->move(public_path('image'), $fileName);
+                $validated['image'] = 'images/' . $fileName;
+
+                // Optionally delete the old file if it exists
+                if ($user->image && file_exists(public_path($user->image))) {
+                    unlink(public_path($user->image));
+                }
+            }
+
+            $user->update($validated);
+            return response()->json([
+                'message' => 'Video Updated Successfully',
+                'data' => $user
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update video',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }
