@@ -62,12 +62,21 @@ class AuthenticationController extends BaseController
     {
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $user = Auth::user();
+            if (is_null($user->email_verified_at)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Please verify your email address before logging in.',
+                ], 403);
+            }
             $success['token'] = $user->createToken('MyApp')->plainTextToken;
             $success['name'] = $user->name;
 
             return $this->sendResponse($success, 'User logged in successfully.');
         } else {
-            return $this->sendError('Unauthorized', ['error' => 'Unauthorized'], 401);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid email or password.',
+            ], 401);
         }
     }
 

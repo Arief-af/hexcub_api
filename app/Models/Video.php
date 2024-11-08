@@ -13,4 +13,8 @@ class Video extends Model
         'duration',
         'file',
     ];
+    public function videoDetails()
+    {
+        return $this->hasMany(VideoDetail::class);
+    }
 }

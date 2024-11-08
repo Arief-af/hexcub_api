@@ -14,10 +14,11 @@ class VideoController extends Controller
         // Check if a search query is provided
         $search = $request->query('search');
 
-        // Query videos, filtering by title if a search query is provided
-        $videos = Video::when($search, function ($query, $search) {
-            return $query->where('title', 'like', '%' . $search . '%');
-        })
+        // Query videos, filtering by title if a search query is provided, and include the 'videoTimestamps' relation
+        $videos = Video::with('videoDetails')
+            ->when($search, function ($query, $search) {
+                return $query->where('title', 'like', '%' . $search . '%');
+            })
             ->latest()
             ->paginate(10);
 
@@ -27,13 +28,15 @@ class VideoController extends Controller
         ], Response::HTTP_OK);
     }
 
-
     public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'duration' => 'required|string|max:255',
             'file' => 'required|mimes:mp4',
+            'timeStamps' => 'required|array',
+            'timeStamps.*.title' => 'required|string',
+            'timeStamps.*.time' => 'required|numeric'
         ]);
 
         try {
@@ -42,14 +45,17 @@ class VideoController extends Controller
                 $request->file->move(public_path('files'), $fileName);
                 $validated['file'] = 'files/' . $fileName;
             }
+
             $video = Video::create($validated);
-            foreach ($request->timeStamps as $time) {
+
+            foreach ($request->input('timeStamps') as $timeStamp) {
                 VideoDetail::create([
                     'video_id' => $video->id,
-                    'time' => $time->time,
-                    'title' => $time->title
+                    'time' => $timeStamp['time'],
+                    'title' => $timeStamp['title']
                 ]);
             }
+
             return response()->json([
                 'message' => 'Video Created Successfully',
                 'data' => $video
@@ -62,19 +68,31 @@ class VideoController extends Controller
         }
     }
 
-    public function show(int $id)
+
+    public function show($id)
     {
-        $video = Video::find($id);
-        if (!$video) {
+        try {
+            // Find the video by ID
+            $video = Video::with('videoDetails')->find($id); // Assuming 'details' is the relationship for VideoDetail
+
+            if (!$video) {
+                return response()->json([
+                    'message' => 'Video not found'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
             return response()->json([
-                'message' => 'Video not found'
-            ], Response::HTTP_NOT_FOUND);
+                'message' => 'Video Retrieved Successfully',
+                'data' => $video
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve video',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        return response()->json([
-            'message' => 'Video Retrieved Successfully',
-            'data' => $video
-        ], Response::HTTP_OK);
     }
+
 
     public function update(Request $request, int $id)
     {
@@ -88,7 +106,9 @@ class VideoController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'duration' => 'required|string|max:255',
-            'file' => 'nullable|mimes:mp4'
+            'video_details' => 'required|array',
+            'video_details.*.title' => 'required|string',
+            'video_details.*.time' => 'required|numeric'
         ]);
 
         try {
@@ -104,7 +124,18 @@ class VideoController extends Controller
             }
 
             $video->update($validated);
-
+            foreach ($request->input('video_details') as $timeStamp) {
+               if (isset($timeStamp['id'])) {
+                    $detail = VideoDetail::find($timeStamp['id']);
+                    $detail->update($timeStamp);
+                } else {
+                    VideoDetail::create([
+                        'video_id' => $video->id,
+                        'time' => $timeStamp['time'],
+                        'title' => $timeStamp['title']
+                    ]);
+                }
+            }
             return response()->json([
                 'message' => 'Video Updated Successfully',
                 'data' => $video
