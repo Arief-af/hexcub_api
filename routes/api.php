@@ -18,19 +18,17 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware(['auth:sanctum', 'verified']);
 
+Route::get('/stream/{filename}', [VideoController::class, 'stream']);
 // Contact CRUD Routes
 Route::get('/contacts', [ContactController::class, 'index']);
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::get('/contacts/{id}', [ContactController::class, 'show']);
-Route::middleware([AdminMiddleware::class])->group(function () {
-    Route::put('/contacts/{id}', [ContactController::class, 'update']);
-    Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
-});
+Route::delete('/contacts/{id}', [ContactController::class, 'destroy'])->middleware(['auth:sanctum', 'verified', AdminMiddleware::class]);
 
 // Meet CRUD Routes
 Route::get('/meets', [MeetController::class, 'index']);
 Route::get('/meets/{id}', [MeetController::class, 'show']);
-Route::middleware([AdminMiddleware::class])->group(function () {
+Route::middleware([AdminMiddleware::class, 'auth:sanctum'])->group(function () {
     Route::post('/meets', [MeetController::class, 'store']);
     Route::put('/meets/{id}', [MeetController::class, 'update']);
     Route::delete('/meets/{id}', [MeetController::class, 'destroy']);

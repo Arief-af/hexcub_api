@@ -11,6 +11,7 @@ class Video extends Model
     protected $fillable = [
         'title',
         'duration',
+        'materi' ,
         'file',
     ];
     public function videoDetails()

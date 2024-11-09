@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('duration');
             $table->string('file');
+            $table->string('materi');
             $table->timestamps();
         });
     }

@@ -10,7 +10,7 @@ class MeetController extends Controller
 {
     public function index()
     {
-        $meets = Meet::latest()->paginate(10);
+        $meets = Meet::first();
 
         return response()->json([
             'message' => 'Meets Retrieved Successfully',
@@ -21,23 +21,32 @@ class MeetController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'date' => 'required|date',
+            'date' => 'required',
             'title' => 'required|string|max:255',
             'instructor' => 'required|string|max:255',
             'url' => 'required|string|max:255',
         ]);
-
-        try {
-            $meet = Meet::create($validated);
+        $countData = Meet::count();
+        if ($countData > 0) {
+            $firstData = Meet::first();
+            $firstData->update($validated);
             return response()->json([
-                'message' => 'Meet Created Successfully',
-                'data' => $meet
-            ], Response::HTTP_CREATED);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to create meet',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                'message' => 'Meet Updated Successfully',
+                'data' => $firstData
+            ], Response::HTTP_OK);
+        } else {
+            try {
+                $meet = Meet::create($validated);
+                return response()->json([
+                    'message' => 'Meet Created Successfully',
+                    'data' => $meet
+                ], Response::HTTP_CREATED);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'message' => 'Failed to create meet',
+                    'error' => $e->getMessage()
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
         }
     }
 

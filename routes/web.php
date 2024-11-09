@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -13,3 +14,5 @@ Route::get('/', function () {
         'post_max_size' => $postMaxSize,
     ]);
 });
+
+Route::get('/stream/{filename}', [VideoController::class, 'stream']);

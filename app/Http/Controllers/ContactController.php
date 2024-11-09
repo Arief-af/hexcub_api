@@ -8,9 +8,12 @@ use Illuminate\Http\Response;
 
 class ContactController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $contacts = Contact::latest()->paginate(10);
+        $search = $request->query('search');
+        $contacts = Contact::when($search, function ($query, $search) {
+            return $query->where('subject', 'like', '%' . $search . '%');
+        })->latest()->paginate(10);
 
         return response()->json([
             'message' => 'Contacts Retrieved Successfully',
@@ -25,7 +28,7 @@ class ContactController extends Controller
             'email' => 'required|email|max:255',
             'phone_number' => 'required|string|max:20',
             'message' => 'required|string',
-            'image' => 'required|string|max:255', // Assuming image is stored as a path or URL
+            'subject' => 'required|string',
         ]);
 
         try {

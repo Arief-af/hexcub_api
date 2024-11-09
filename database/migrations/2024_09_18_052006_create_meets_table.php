@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('meets', function (Blueprint $table) {
             $table->id();
-            $table->date('date');
+            $table->dateTime('date');
             $table->string('title');
             $table->string('instructor');
             $table->string('url');

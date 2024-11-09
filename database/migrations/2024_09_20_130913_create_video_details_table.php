@@ -18,7 +18,7 @@ return new class extends Migration
                   ->onDelete('cascade')
                   ->onUpdate('cascade');
             $table->string('title');
-            $table->time('time');
+            $table->string('time');
             $table->timestamps();
         });
     }

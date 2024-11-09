@@ -102,6 +102,7 @@ class UserController extends Controller
 
         $emailUpdated = false;
 
+        $oldEmail = $user->email;
         // Check if email has changed
         if (isset($validated['email']) && $validated['email'] !== $user->email) {
             // Ensure the new email is unique
@@ -113,12 +114,14 @@ class UserController extends Controller
 
             // Set email_verified_at to null and notify user to verify email
             $validated['email_verified_at'] = null;
-            $user->notify(new VerifyEmail());
             $emailUpdated = true;
         }
-
+        
         // Update the user
         $user->update($validated);
+        if ($oldEmail !== $request->email) {
+            $user->notify(new VerifyEmail());
+        }
 
         // Return different responses based on whether the email was updated
         if ($emailUpdated) {

@@ -6,6 +6,7 @@ use App\Models\Video;
 use App\Models\VideoDetail;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class VideoController extends Controller
 {
@@ -34,6 +35,7 @@ class VideoController extends Controller
             'title' => 'required|string|max:255',
             'duration' => 'required|string|max:255',
             'file' => 'required|mimes:mp4',
+            'materi' => 'required|string',
             'timeStamps' => 'required|array',
             'timeStamps.*.title' => 'required|string',
             'timeStamps.*.time' => 'required|numeric'
@@ -105,10 +107,8 @@ class VideoController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'materi' => 'required|string',
             'duration' => 'required|string|max:255',
-            'video_details' => 'required|array',
-            'video_details.*.title' => 'required|string',
-            'video_details.*.time' => 'required|numeric'
         ]);
 
         try {
@@ -124,18 +124,24 @@ class VideoController extends Controller
             }
 
             $video->update($validated);
-            foreach ($request->input('video_details') as $timeStamp) {
-               if (isset($timeStamp['id'])) {
-                    $detail = VideoDetail::find($timeStamp['id']);
-                    $detail->update($timeStamp);
-                } else {
-                    VideoDetail::create([
-                        'video_id' => $video->id,
-                        'time' => $timeStamp['time'],
-                        'title' => $timeStamp['title']
-                    ]);
+            $videoDetails = $request->input('video_details', []);
+            if (is_array($videoDetails)) {
+                foreach ($videoDetails as $timeStamp) {
+                    if (isset($timeStamp['id'])) {
+                        $detail = VideoDetail::find($timeStamp['id']);
+                        if ($detail) {
+                            $detail->update($timeStamp);
+                        }
+                    } else {
+                        VideoDetail::create([
+                            'video_id' => $video->id,
+                            'time' => $timeStamp['time'],
+                            'title' => $timeStamp['title']
+                        ]);
+                    }
                 }
             }
+    
             return response()->json([
                 'message' => 'Video Updated Successfully',
                 'data' => $video
@@ -176,5 +182,69 @@ class VideoController extends Controller
                 'error' => $e->getMessage()
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public function stream(Request $request, $filename)
+    {
+        $filePath = public_path('files/' . $filename); // Adjust path if 
+        if (!file_exists($filePath)) {
+            abort(404);
+        }
+
+        $fileSize = filesize($filePath);
+        $start = 0;
+        $end = $fileSize - 1;
+
+        // Check if there's a Range header in the request
+        if ($request->hasHeader('Range')) {
+            $range = $request->header('Range');
+            [$unit, $range] = explode('=', $range, 2);
+            [$start, $end] = explode('-', $range);
+            $start = intval($start);
+
+            // If end is empty, it means request till the end of the file
+            $end = ($end === '') ? $fileSize - 1 : intval($end);
+
+            if ($end >= $fileSize) {
+                $end = $fileSize - 1;
+            }
+
+            $length = $end - $start + 1;
+
+            // Set the status to 206 Partial Content
+            $headers = [
+                'Content-Type' => 'video/mp4',
+                'Content-Length' => $length,
+                'Content-Range' => "bytes $start-$end/$fileSize",
+                'Accept-Ranges' => 'bytes',
+            ];
+
+            $response = new StreamedResponse(function () use ($filePath, $start, $end) {
+                $handle = fopen($filePath, 'rb');
+                fseek($handle, $start);
+                $buffer = 8192;
+                while (!feof($handle) && ($pos = ftell($handle)) <= $end) {
+                    if ($pos + $buffer > $end) {
+                        $buffer = $end - $pos + 1;
+                    }
+                    echo fread($handle, $buffer);
+                    flush();
+                }
+                fclose($handle);
+            }, 206, $headers);
+        } else {
+            // No Range header present
+            $headers = [
+                'Content-Type' => 'video/mp4',
+                'Content-Length' => $fileSize,
+                'Accept-Ranges' => 'bytes',
+            ];
+
+            $response = new StreamedResponse(function () use ($filePath) {
+                readfile($filePath);
+            }, 200, $headers);
+        }
+
+        return $response;
     }
 }
