@@ -2,6 +2,8 @@
 /node_modules
 /public/build
 /public/hot
+/public/files
+/public/images
 /public/storage
 /storage/*.key
 /vendor
