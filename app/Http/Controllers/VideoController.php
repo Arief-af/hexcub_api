@@ -20,7 +20,7 @@ class VideoController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where('title', 'like', '%' . $search . '%');
             })
-            ->latest()
+            ->oldest()
             ->paginate(10);
 
         return response()->json([
