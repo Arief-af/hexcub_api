@@ -3,35 +3,38 @@ name: Deploy to AWS EC2
 on:
   push:
     branches:
-      - main
+      - main # Trigger deployment on push to master branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout codeMore actions
         uses: actions/checkout@v2
 
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      - name: Deploy to EC2 using password
-        env:
-          SSH_PASSWORD: ${{ secrets.EC2_SSH_PASSWORD }}
+      - name: Deploy to EC2
         run: |
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no root@47.237.87.59 << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@13.239.232.23 << 'EOF'
             cd /var/www/hexcub_api
 
             echo "🛠️ Pulling latest code..."
-            git pull origin master
+            git pull origin main
 
-            echo "🐳 Building Docker containers..."
-            docker-compose build
+            # echo "🐳 Building Docker containers..."
+            # docker-compose build
 
-            echo "🔄 Restarting with docker-compose..."
-            docker-compose down
-            docker-compose up -d --remove-orphans
+            # echo "🔄 Restarting with docker-compose..."
+            # docker-compose down
+            # docker-compose up -d --remove-orphans
+
+            echo "🚀 Restarting Nginx..."
+            sudo systemctl restart nginx
 
             echo "✅ Deployment finished!"
           EOF
