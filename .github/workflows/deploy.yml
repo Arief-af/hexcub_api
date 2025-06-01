@@ -1,0 +1,37 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - master # Trigger deployment on push to master branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@54.169.228.95 << 'EOF'
+            cd /var/www/hexcub_api
+
+            echo "🛠️ Pulling latest code..."
+            git pull origin master
+
+            echo "🐳 Building Docker containers..."
+            docker-compose build
+
+            echo "🔄 Restarting with docker-compose..."
+            docker-compose down
+            docker-compose up -d --remove-orphans
+
+            echo "✅ Deployment finished!"
+          EOF
