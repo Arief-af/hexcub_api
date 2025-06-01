@@ -46,7 +46,7 @@ class VerifyEmail extends Notification
         );
     
         // Kembalikan URL frontend dengan signed URL tanpa encode tambahan
-        return config('app.frontend_url') . '/verify-email?' . parse_url($signedUrl, PHP_URL_QUERY);
+        return  'https://hexcub.zqdevs.my.id/verify-email?' . parse_url($signedUrl, PHP_URL_QUERY);
     }
     
 
