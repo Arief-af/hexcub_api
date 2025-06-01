@@ -3,7 +3,7 @@ name: Deploy to AWS EC2
 on:
   push:
     branches:
-      - main # Trigger deployment on push to master branch
+      - main
 
 jobs:
   deploy:
@@ -13,14 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Deploy to EC2
+      - name: Deploy to EC2 using password
+        env:
+          SSH_PASSWORD: ${{ secrets.EC2_SSH_PASSWORD }}
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@54.169.228.95 << 'EOF'
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no root@47.237.87.59 << 'EOF'
             cd /var/www/hexcub_api
 
             echo "🛠️ Pulling latest code..."
