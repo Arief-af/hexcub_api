@@ -1,4 +1,4 @@
-FROM p -fpm-alpine
+FROM php:8.2-fpm-alpine
 
 # Install PHP extensions
 RUN apk add --no-cache \
@@ -25,3 +25,4 @@ RUN echo "upload_max_filesize=4096M" >> /usr/local/etc/php/conf.d/custom-php.ini
 WORKDIR /var/www/app
 
 CMD ["php-fpm"]
+
