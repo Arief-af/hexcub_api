@@ -2,7 +2,7 @@
 
 DOMAIN="hexcub-api.zqdevs.my.id"
 EMAIL="afn.happy@gmail.com"
-WEBROOT="/usr/share/nginx/html"
+WEBROOT="/var/www/app"
 
 # Tunggu nginx ready
 echo "🔄 Waiting for nginx to be ready..."
