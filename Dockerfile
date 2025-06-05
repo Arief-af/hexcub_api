@@ -1,9 +1,8 @@
 FROM php:8.3-fpm-alpine
 
-# Set working directory early
 WORKDIR /var/www/app
 
-# Install dependencies and build tools
+# Install dependencies dan build tools
 RUN apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
         libpng-dev \
@@ -23,29 +22,24 @@ RUN apk add --no-cache --virtual .build-deps \
         oniguruma \
         zip \
         unzip \
-    # Configure and install PHP extensions
     && docker-php-ext-configure gd \
         --with-jpeg=/usr/include/ \
         --with-webp=/usr/include/ \
         --with-xpm=/usr/include/ \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql zip mbstring bcmath \
-    # Clean up build dependencies
     && apk del .build-deps
 
 # Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copy only composer files first for caching
-COPY composer.json composer.lock ./
+# Copy seluruh source code sekaligus (termasuk artisan)
+COPY . .
 
-# Disable post-autoload-dump so composer install tidak gagal saat artisan belum ada
+# Disable post-autoload-dump sementara supaya tidak gagal saat artisan dipanggil
 ENV COMPOSER_DISABLE_POST_AUTOLOAD_DUMP=1
 
-# Install composer dependencies (without dev)
+# Install composer dependencies tanpa dev dan optimize autoloader
 RUN composer install --no-dev --optimize-autoloader
-
-# Copy rest of the application code (termasuk artisan)
-COPY . .
 
 # Jalankan post-autoload-dump secara manual setelah kode lengkap ada
 RUN composer dump-autoload --optimize
@@ -58,11 +52,10 @@ RUN echo "upload_max_filesize=4096M" >> /usr/local/etc/php/conf.d/custom-php.ini
  && echo "max_input_time=300" >> /usr/local/etc/php/conf.d/custom-php.ini \
  && echo "file_uploads=On" >> /usr/local/etc/php/conf.d/custom-php.ini
 
-# Set permissions for www-data user (default user of php-fpm)
+# Set permission folder aplikasi ke www-data
 RUN chown -R www-data:www-data /var/www/app
 
-# Reset environment variable supaya tidak mengganggu run time container
+# Reset environment variable supaya tidak mengganggu runtime container
 ENV COMPOSER_DISABLE_POST_AUTOLOAD_DUMP=
 
-# Use php-fpm as entrypoint
 CMD ["php-fpm"]
