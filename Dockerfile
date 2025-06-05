@@ -25,5 +25,9 @@ COPY --from=composer:2.6.5 /usr/bin/composer /usr/local/bin/composer
 COPY composer.json ./
 RUN composer install
 
+# Add init-cert script
+COPY certbot/init-cert.sh /init-cert
+RUN chmod +x /init-cert
+
 # Set the default command to run php-fpm
 CMD ["php-fpm"]
