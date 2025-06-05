@@ -34,3 +34,4 @@ RUN echo "upload_max_filesize=4096M" >> /usr/local/etc/php/conf.d/custom-php.ini
 COPY . /var/www/app
 
 CMD ["php-fpm"]
+
