@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOMAIN="hexcub-api.zqdevs.my.id"
+DOMAIN="hexcubapi.zqdevs.my.id"
 EMAIL="afn.happy@gmail.com"
 WEBROOT="/var/www/app"
 
