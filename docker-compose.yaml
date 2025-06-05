@@ -36,12 +36,12 @@ services:
       - .:/var/www/app:delegated
     networks:
       - laravel
-  certbot:
-    build:
-      context: ./certbot
-    container_name: certbot
-    depends_on:
-      - hexcubapi
-    volumes:
-      - ./public:/var/www/app/public      # Harus sama dengan webroot dari nginx/Vite
-      - ./certbot/ssl:/etc/letsencrypt
+  # certbot:
+  #   build:
+  #     context: ./certbot
+  #   container_name: certbot
+  #   depends_on:
+  #     - hexcubapi
+  #   volumes:
+  #     - ./public:/var/www/app/public      # Harus sama dengan webroot dari nginx/Vite
+  #     - ./certbot/ssl:/etc/letsencrypt
