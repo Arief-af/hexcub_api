@@ -39,9 +39,11 @@ services:
     container_name: nginx-proxy-manager
     restart: always
     ports:
-      - "8080:80"
-      - "8443:443"
-      - "8282:81"
+      - "8080:80"     # Untuk HTTP (akses lokal, optional)
+      - "8443:443"    # Untuk HTTPS
+      - "8282:81"     # Untuk akses UI NPM
     volumes:
       - ./nginx-data/data:/data
       - ./nginx-data/letsencrypt:/etc/letsencrypt
+    networks:
+      - laravel
