@@ -41,7 +41,7 @@ services:
       context: ./certbot
     container_name: certbot
     depends_on:
-      - hexcub
+      - hexcubapi
     volumes:
       - ./public:/var/www/app/public      # Harus sama dengan webroot dari nginx/Vite
       - ./certbot/ssl:/etc/letsencrypt
