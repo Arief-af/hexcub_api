@@ -16,7 +16,8 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - .:/var/www/app:delegated
-      - ./nginx/certs:/etc/letsencrypt:ro # mount sertifikat SSL ke nginx
+      - ./nginx/certs/cert.pem:/etc/letsencrypt/cert.pem:ro
+      - ./nginx/certs/key.pem:/etc/letsencrypt/key.pem:ro
     depends_on:
       - hexcubapi
     networks:
