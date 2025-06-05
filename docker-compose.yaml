@@ -16,7 +16,7 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - .:/var/www/app:delegated
-      - ./certbot/ssl:/etc/letsencrypt:ro  # mount sertifikat SSL ke nginx
+      - ./nginx/certs:/etc/letsencrypt:ro  # mount sertifikat SSL ke nginx
     depends_on:
       - hexcubapi
     networks:
@@ -33,15 +33,5 @@ services:
       - "9000"
     volumes:
       - .:/var/www/app:delegated
-    networks:
-      - laravel
-
-  certbot:
-    build:
-      context: ./certbot
-    container_name: certbot
-    volumes:
-      - ./public:/var/www/app/public
-      - ./certbot/ssl:/etc/letsencrypt  # tempat hasil sertifikat disimpan
     networks:
       - laravel
