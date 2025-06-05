@@ -38,11 +38,17 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy only composer files first for caching
 COPY composer.json composer.lock ./
 
+# Disable post-autoload-dump so composer install tidak gagal saat artisan belum ada
+ENV COMPOSER_DISABLE_POST_AUTOLOAD_DUMP=1
+
 # Install composer dependencies (without dev)
 RUN composer install --no-dev --optimize-autoloader
 
-# Copy rest of the application code
+# Copy rest of the application code (termasuk artisan)
 COPY . .
+
+# Jalankan post-autoload-dump secara manual setelah kode lengkap ada
+RUN composer dump-autoload --optimize
 
 # Set php.ini custom settings
 RUN echo "upload_max_filesize=4096M" >> /usr/local/etc/php/conf.d/custom-php.ini \
@@ -54,6 +60,9 @@ RUN echo "upload_max_filesize=4096M" >> /usr/local/etc/php/conf.d/custom-php.ini
 
 # Set permissions for www-data user (default user of php-fpm)
 RUN chown -R www-data:www-data /var/www/app
+
+# Reset environment variable supaya tidak mengganggu run time container
+ENV COMPOSER_DISABLE_POST_AUTOLOAD_DUMP=
 
 # Use php-fpm as entrypoint
 CMD ["php-fpm"]
