@@ -6,6 +6,7 @@ use App\Models\Video;
 use App\Models\VideoDetail;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class VideoController extends Controller
@@ -42,12 +43,20 @@ class VideoController extends Controller
         ]);
 
         try {
+            // Upload file ke S3
             if ($request->hasFile('file')) {
-                $fileName = time() . '.' . $request->file->extension();
-                $request->file->move(public_path('files'), $fileName);
-                $validated['file'] = 'files/' . $fileName;
+                $file = $request->file('file');
+                $path = $file->store('videos', 's3');
+
+                if (!$path) {
+                    throw new \Exception('File gagal disimpan ke S3.');
+                }
+
+                $url = Storage::disk('s3')->url($path);
+                $validated['file'] = $url;
             }
 
+            // Simpan ke database
             $video = Video::create($validated);
 
             foreach ($request->input('timeStamps') as $timeStamp) {
@@ -69,6 +78,7 @@ class VideoController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
     public function show($id)
@@ -113,13 +123,16 @@ class VideoController extends Controller
 
         try {
             if ($request->hasFile('file')) {
-                $fileName = time() . '.' . $request->file->extension();
-                $request->file->move(public_path('files'), $fileName);
-                $validated['file'] = 'files/' . $fileName;
+                // Upload file baru ke S3
+                $file = $request->file('file');
+                $path = $file->store('videos', 's3'); // Simpan di folder 'videos' dalam bucket
+                $url = Storage::disk('s3')->url($path);
+                $validated['file'] = $url;
 
-                // Optionally delete the old file if it exists
-                if ($video->file && file_exists(public_path($video->file))) {
-                    unlink(public_path($video->file));
+                // Hapus file lama di S3 (jika ada)
+                if ($video->file) {
+                    $oldPath = ltrim(parse_url($video->file, PHP_URL_PATH), '/');
+                    Storage::disk('s3')->delete($oldPath);
                 }
             }
 
@@ -141,7 +154,7 @@ class VideoController extends Controller
                     }
                 }
             }
-    
+
             return response()->json([
                 'message' => 'Video Updated Successfully',
                 'data' => $video
@@ -166,11 +179,10 @@ class VideoController extends Controller
 
         try {
             // Delete the file associated with the video, if it exists
-            if ($video->file && file_exists(public_path($video->file))) {
-                unlink(public_path($video->file));
+            if ($video->file) {
+                $filePath = ltrim(parse_url($video->file, PHP_URL_PATH), '/');
+                Storage::disk('s3')->delete($filePath);
             }
-
-            // Delete the video entry from the database
             $video->delete();
 
             return response()->json([
@@ -184,67 +196,86 @@ class VideoController extends Controller
         }
     }
 
+    // public function stream(Request $request, $filename)
+    // {
+    //     $filePath = public_path('files/' . $filename); // Adjust path if 
+    //     if (!file_exists($filePath)) {
+    //         abort(404);
+    //     }
+
+    //     $fileSize = filesize($filePath);
+    //     $start = 0;
+    //     $end = $fileSize - 1;
+
+    //     // Check if there's a Range header in the request
+    //     if ($request->hasHeader('Range')) {
+    //         $range = $request->header('Range');
+    //         [$unit, $range] = explode('=', $range, 2);
+    //         [$start, $end] = explode('-', $range);
+    //         $start = intval($start);
+
+    //         // If end is empty, it means request till the end of the file
+    //         $end = ($end === '') ? $fileSize - 1 : intval($end);
+
+    //         if ($end >= $fileSize) {
+    //             $end = $fileSize - 1;
+    //         }
+
+    //         $length = $end - $start + 1;
+
+    //         // Set the status to 206 Partial Content
+    //         $headers = [
+    //             'Content-Type' => 'video/mp4',
+    //             'Content-Length' => $length,
+    //             'Content-Range' => "bytes $start-$end/$fileSize",
+    //             'Accept-Ranges' => 'bytes',
+    //         ];
+
+    //         $response = new StreamedResponse(function () use ($filePath, $start, $end) {
+    //             $handle = fopen($filePath, 'rb');
+    //             fseek($handle, $start);
+    //             $buffer = 8192;
+    //             while (!feof($handle) && ($pos = ftell($handle)) <= $end) {
+    //                 if ($pos + $buffer > $end) {
+    //                     $buffer = $end - $pos + 1;
+    //                 }
+    //                 echo fread($handle, $buffer);
+    //                 flush();
+    //             }
+    //             fclose($handle);
+    //         }, 206, $headers);
+    //     } else {
+    //         // No Range header present
+    //         $headers = [
+    //             'Content-Type' => 'video/mp4',
+    //             'Content-Length' => $fileSize,
+    //             'Accept-Ranges' => 'bytes',
+    //         ];
+
+    //         $response = new StreamedResponse(function () use ($filePath) {
+    //             readfile($filePath);
+    //         }, 200, $headers);
+    //     }
+
+    //     return $response;
+    // }
+
     public function stream(Request $request, $filename)
     {
-        $filePath = public_path('files/' . $filename); // Adjust path if 
-        if (!file_exists($filePath)) {
-            abort(404);
+        $disk = \Storage::disk('s3');
+        $path = "videos/" . $filename;
+
+        if (!$disk->exists($path)) {
+            return response()->json(['message' => 'File not found'], 404);
         }
 
-        $fileSize = filesize($filePath);
-        $start = 0;
-        $end = $fileSize - 1;
+        $stream = $disk->readStream($path);
 
-        // Check if there's a Range header in the request
-        if ($request->hasHeader('Range')) {
-            $range = $request->header('Range');
-            [$unit, $range] = explode('=', $range, 2);
-            [$start, $end] = explode('-', $range);
-            $start = intval($start);
-
-            // If end is empty, it means request till the end of the file
-            $end = ($end === '') ? $fileSize - 1 : intval($end);
-
-            if ($end >= $fileSize) {
-                $end = $fileSize - 1;
-            }
-
-            $length = $end - $start + 1;
-
-            // Set the status to 206 Partial Content
-            $headers = [
-                'Content-Type' => 'video/mp4',
-                'Content-Length' => $length,
-                'Content-Range' => "bytes $start-$end/$fileSize",
-                'Accept-Ranges' => 'bytes',
-            ];
-
-            $response = new StreamedResponse(function () use ($filePath, $start, $end) {
-                $handle = fopen($filePath, 'rb');
-                fseek($handle, $start);
-                $buffer = 8192;
-                while (!feof($handle) && ($pos = ftell($handle)) <= $end) {
-                    if ($pos + $buffer > $end) {
-                        $buffer = $end - $pos + 1;
-                    }
-                    echo fread($handle, $buffer);
-                    flush();
-                }
-                fclose($handle);
-            }, 206, $headers);
-        } else {
-            // No Range header present
-            $headers = [
-                'Content-Type' => 'video/mp4',
-                'Content-Length' => $fileSize,
-                'Accept-Ranges' => 'bytes',
-            ];
-
-            $response = new StreamedResponse(function () use ($filePath) {
-                readfile($filePath);
-            }, 200, $headers);
-        }
-
-        return $response;
+        return response()->stream(function () use ($stream) {
+            fpassthru($stream);
+        }, 200, [
+            "Content-Type" => "video/mp4",
+            "Accept-Ranges" => "bytes",
+        ]);
     }
 }
