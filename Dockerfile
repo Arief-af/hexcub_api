@@ -15,6 +15,12 @@ RUN apk add --no-cache --virtual .build-deps \
         bash \
         curl \
     && apk add --no-cache \
+        libpng \
+        libjpeg-turbo \
+        libwebp \
+        libxpm \
+        libzip \
+        oniguruma \
         zip \
         unzip \
     # Configure and install PHP extensions
