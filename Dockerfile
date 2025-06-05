@@ -23,6 +23,6 @@ RUN chown -R www-data:www-data /var/www/app
 
 ENV COMPOSER_DISABLE_POST_AUTOLOAD_DUMP=
 
-RUN pip install certbot certbot-nginx
+RUN apk add certbot-nginx
 
 CMD ["php-fpm"]
