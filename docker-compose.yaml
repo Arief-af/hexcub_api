@@ -19,8 +19,8 @@ services:
       # - ./nginx/certs:/etc/letsencrypt:ro
       - ./nginx/html:/var/www/html
       # ❌ HAPUS YANG INI:
-      # - ./nginx/certs/cert.pem:/etc/ssl/cert.pem:ro
-      # - ./nginx/certs/key.pem:/etc/ssl/key.pem:ro
+      - ./nginx/cert/fullchain.pem:/etc/ssl/cert.pem:ro
+      - ./nginx/cert/privkey.pem:/etc/ssl/privkey.pem:ro
     depends_on:
       - hexcubapi
     networks:
