@@ -32,9 +32,6 @@ services:
       - .:/var/www/app:delegated
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-      # ❌ HAPUS YANG INI:
-      # - ./nginx/cert/fullchain.pem:/etc/ssl/cert.pem:ro
-      # - ./nginx/cert/privkey.pem:/etc/ssl/privkey.pem:ro
     depends_on:
       - hexcubapi
     networks:
