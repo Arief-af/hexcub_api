@@ -29,9 +29,9 @@ services:
       - "443:443"      # Akses HTTPS
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      # - .:/var/www/app:delegated
-      # - ./certbot/conf:/etc/letsencrypt
-      # - ./certbot/www:/var/www/certbot
+      - .:/var/www/app:delegated
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
       # ❌ HAPUS YANG INI:
       # - ./nginx/cert/fullchain.pem:/etc/ssl/cert.pem:ro
       # - ./nginx/cert/privkey.pem:/etc/ssl/privkey.pem:ro
@@ -41,10 +41,10 @@ services:
       - laravel
 
   # Uncomment and modify if using certbot for Let's Encrypt
-  # certbot:
-  #   image: certbot/certbot
-  #   container_name: certbot
-  #   volumes:
-  #     - ./certbot:/conf:/etc/letsencrypt
-  #     - ./certbot:/www:/var/www/certbot
-  #   command: certonly --webroot -w /var/www/certbot --force-renewal --email afn.happy@gmail.com -d hexcubapi.zqdevs.my.id --agree-tos
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot:/conf:/etc/letsencrypt
+      - ./certbot:/www:/var/www/certbot
+    command: certonly --webroot -w /var/www/certbot --force-renewal --email afn.happy@gmail.com -d hexcubapi.zqdevs.my.id --agree-tos
