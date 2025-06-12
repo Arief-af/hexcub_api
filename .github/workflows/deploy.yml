@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@54.251.68.87 << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@13.212.97.151 << 'EOF'
             cd /var/www/hexcub_api
 
             echo "🛠️ Pulling latest code..."
