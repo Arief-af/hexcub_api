@@ -30,8 +30,8 @@ jobs:
             # docker-compose build
 
             # echo "🔄 Restarting with docker-compose..."
-            # docker-compose down
-            # docker-compose up -d --remove-orphans
+            docker-compose down
+            docker-compose up -d
 
             echo "🚀 Restarting Nginx..."
             sudo systemctl restart nginx
